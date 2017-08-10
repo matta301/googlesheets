@@ -8,7 +8,9 @@
 
 
 	<form id="location-form" action="">
-		<input id="user-location" type="text" name="location" value="">		
+		<input id="user-location" type="text" name="location" value="" >	
+		<span class="mdl-textfield__error">Only alphabet and no spaces, please!</span>
+			
 		<select id="distance-option" name="distance">
 			<option value="2000">2km</option>	
 			<option value="5000">5km</option>			

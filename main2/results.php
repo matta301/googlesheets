@@ -52,7 +52,7 @@
 
 			<!-- Sidebar -->	
 			<sidebar id="opening-times" class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet mdl-cell--4-col-phone" style="border: 1px solid green;">
-				<!-- Opening Times Sppended from JS -->
+				<!-- Opening Times appended from shopDetails() -->
 			</sidebar>
 
 			<div id="main-shop-body" class="mdl-cell mdl-cell--9-col" style=" ">
