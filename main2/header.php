@@ -8,9 +8,9 @@
 	<style type="text/css">
 
 		.mdl-data-table td, .mdl-data-table td .mdl-data-table__select { text-align: left; }
-		
+
 	</style>
 </head>
-<body class="<?php echo $pageClass; ?>">	
+<body class="<?php echo $pageClass; ?>">
 	
 
