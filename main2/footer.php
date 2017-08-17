@@ -11,11 +11,9 @@
 
 
 	locationSearch(apiKey);
-
 	// Displays information on bicycle shop on results.php
 	shopDetails();
 
-	googleSheetsData();
 
 
 </script>

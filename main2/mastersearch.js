@@ -104,26 +104,38 @@ function locationSearch() {
 
 					var output = '';
 
-		    		for (var i = 0; i < results.length; i++) {	      		
+		    		for (var i = 0; i < results.length; i++) {
 
 		      			// All place ID's returned from search
-		      			var shopName 	 = results[i].name;
+		      			var shopName 	 = results[i].name.toLowerCase();
+		      				shopName 	 = shopName.replace(/\s/g,'');
+
+	      				var shop 		 = results[i].name.toLowerCase();
 		      			var shopVicinity = results[i].vicinity;
 		      			var placeId  	 = results[i].place_id;
-		      			
-		      			// Results returned as a sting
-		      			output += 	'<tr>' +
-										'<td>' + shopName +'</td>' +
-										'<td><a href="shop-information.php?shopname=' + shopName + '&shopid=' + placeId + '&address=' + shopVicinity + '" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Buy Now</a></td>' +
-									'</tr>';
 
-						// Appends results string to the table on the results page
-						if (output) {
-							document.getElementById('maintable').innerHTML = output;
-						};
+		      			// Filter out Sports Direct to not show
+		      			var sportsDirect1 = 'sportsdirect';
+
+
+		      			console.log(shopName)
+
+		      			if (shopName.indexOf(sportsDirect1) == -1) {
+
+		      				// Results returned as a sting
+			      			output += 	'<tr>'
+									+		'<td>' + shop +'</td>'
+									+		'<td><a href="shop-information.php?shopname=' + shop + '&shopid=' + placeId + '&address=' + shopVicinity + '" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Buy Now</a></td>'
+									+	'</tr>';
+
+							// Appends results string to the table on the results page
+							if (output) {
+								document.getElementById('maintable').innerHTML = output;
+							}
+		      			}	      			
 					}
 				}
-			}			
+			}
 		})
 	}
 }
@@ -195,7 +207,7 @@ function shopDetails() {
 	  			var fullDetails = place;
 
   				// Passes array to googleSheetsData() function where it will be compared to find a matching row in google sheets
-	  			googleSheetsData(fullDetails)
+	  			googleSheetsData(fullDetails);
 	  		}
 		});
 	};
@@ -244,27 +256,58 @@ function compareResults(GSdata, fullDetails) {
 	var googleSheetsResults = GSdata.feed.entry;
 
 	// Checks to see if the results in google sheets are set
-	if (googleMapsResults && googleSheetsResults) {
+	if (googleMapsResults && googleSheetsResults) {	
 
-		for (var i = 0; i < googleSheetsResults.length; i++) {			
+		// Google Maps API Name and address components
+		var GMName 				= googleMapsResults.name.toLowerCase();
+		var GMaddressComponents = googleMapsResults.address_components;
+		
+		
+		for (var i = 0; i < googleSheetsResults.length; i++) {
 
-			var GMshop = googleMapsResults.name.toLowerCase();
-			var GSshop = googleSheetsResults[i].gsx$shopname.$t.toLowerCase();
+			// Google Sheets address components
+			var GSName		= googleSheetsResults[i].gsx$shopname.$t.toLowerCase();
+			var GSCity		= googleSheetsResults[i].gsx$city.$t.toLowerCase();
+			var GSCounty	= googleSheetsResults[i].gsx$county.$t.toLowerCase();
+			var GSPostCode	= googleSheetsResults[i].gsx$postcode.$t.toLowerCase();		
 
-			// Bicycle Shop Post code from both sets of data
-			var GMsaddress 	   = googleMapsResults.formatted_address.toLowerCase();
-			var GSshopPostCode = googleSheetsResults[i].gsx$postcode.$t.toLowerCase();
+			// Loops over address components from Maps API
+			for (var j = 0; j < GMaddressComponents.length; j++) {
 
-			
-			// A comparison is made between both sets of data to find matching results using the shop name and the postcode
-			if(GMshop == GSshop && GMsaddress.indexOf(GSshopPostCode)) {
-				
-				// Merges both sets of results
-				var finalShopDetails = Object.assign(googleMapsResults, googleSheetsResults[i]);
-				
-				appendBicycleShopDetails(finalShopDetails);
-			}		
-		};	
+				// Google Maps API address long name
+				var components = GMaddressComponents[j].long_name.toLowerCase();
+
+				console.log(googleMapsResults)
+				console.log(GSPostCode)
+
+
+				// If a matching shop name and postcode are found results are displayed
+				if (GMName == GSName && GSPostCode == components) {
+
+					console.log("GM Name - " + GMName);
+					console.log("We have a match");
+
+					// Adds items from google sheets into a new array to make it easier to read. It will be joined to google maps data array
+					var additionalData = {
+						'description': googleSheetsResults[i].gsx$description.$t,
+						'email': googleSheetsResults[i].gsx$email.$t,
+						'basicservice': googleSheetsResults[i].gsx$basicservice.$t,
+						'standardservice': googleSheetsResults[i].gsx$standardservice.$t,
+						'fullservice': googleSheetsResults[i].gsx$fullservice.$t,
+						'facebook': googleSheetsResults[i].gsx$facebook.$t,
+						'twitter': googleSheetsResults[i].gsx$twitter.$t
+					};
+
+
+					// Results from google sheets are cobined to the Google maps data.
+					var finalShopDetails = Object.assign(googleMapsResults, additionalData);
+
+					console.log("================ Final Array =========================");
+					console.log(finalShopDetails);
+					appendBicycleShopDetails(finalShopDetails);
+				}
+			}
+		}
 	}
 }
 
@@ -276,78 +319,261 @@ function compareResults(GSdata, fullDetails) {
 
 */
 function appendBicycleShopDetails(finalShopDetails) {
-	console.log(finalShopDetails);
 
-	// Bicycle shop Inofrmation 
-	var name 		= finalShopDetails.name;
-	var description	= finalShopDetails.gsx$description.$t;
-	var address 	= finalShopDetails.formatted_address;
-	var phone 		= finalShopDetails.formatted_phone_number;
-	var website		= finalShopDetails.website;
-	var rating		= finalShopDetails.rating;
-	var open 		= finalShopDetails.opening_hours.open_now;
+	//console.log(finalShopDetails);
 
-	console.log(name)
-	console.log(description)
-	console.log(address)
-	console.log(phone)
-	console.log(website)
-	console.log(rating)
-	console.log(open)
+	var shopPage = document.getElementById('shop-details-page-container');
 
-	// Service prices
-	var basicService 	= finalShopDetails.gsx$basicservice.$t;
-	var standardService = finalShopDetails.gsx$standardservice.$t;
-	var fullService 	= finalShopDetails.gsx$fullservice.$t;
 
-	console.log(basicService)
-	console.log(standardService)
-	console.log(fullService)
+	// Test to see if #shop-details-page-container element and finalShopDetails exists 
+	if (shopPage) {
 
-	// Social 
-	var facebook = finalShopDetails.gsx$facebook.$t;
-	var twitter	 = finalShopDetails.gsx$twitter.$t;
-	
-	console.log("Facebook - " + facebook)
-	console.log("Twitter - " + twitter)
-
-	console.log("----------------------------------------")
-	console.log("Reviews")
-	console.log("----------------------------------------")
-	for (var i = 0; i < finalShopDetails.reviews.length; i++) {
+		// Validation 
+		// Bicycle shop Inofrmation
+		if (finalShopDetails.hasOwnProperty('name')) {
+			var name = finalShopDetails.name;
+		};
 		
-		console.log("Author - " + finalShopDetails.reviews[i].author_name)
-		console.log("Rating - " + finalShopDetails.reviews[i].rating)
-		console.log("Text - " + finalShopDetails.reviews[i].text)
-	};
+		// Description
+		if (finalShopDetails.description){
+			var description = finalShopDetails.description;
+		}else {
+			var description = 'Sorry no description is currently available.';
+		}
 
+		// Address
+		if (finalShopDetails.hasOwnProperty('formatted_address')) { 
+			var address = finalShopDetails.formatted_address; 
+		}else {
+			var address = ''; 
+		}
+		
+		// Phone Number
+		if (finalShopDetails.hasOwnProperty('formatted_phone_number')) { 
+			var phone = 't. ' + finalShopDetails.formatted_phone_number;
+		}else {
+			var phone = 't. - ';
+		}
+		
+		// Website
+		if (finalShopDetails.website) {
+			var website	= finalShopDetails.website; 
+				website	= website.replace(/\?.*/, '');
+				website = 'w. <a href="'+ website +'" target="_blank">' + website.replace('http://', '') + '</a>';
+		}else {
+			var website = 'w. - ';
+		}
+		
+		// Email
+		if (finalShopDetails.email){	
+			var email  = 'e. <a href="mailto:' + finalShopDetails.email + '">' + finalShopDetails.email + '</a>';
+		}else {
+			var email = 'e. - ';
+		}
+		
+		// Rating
+		if (finalShopDetails.rating) {
+			var rating = finalShopDetails.rating;
+		}
 
+		// Open Now
+		if (finalShopDetails.opening_hours) { 
+			var open = finalShopDetails.opening_hours.open_now;
+		}
+		
+		// Basic Service
+		if (finalShopDetails.basicservice) { 
+			var basicService = '<div class="workshop-price mdl-cell mdl-cell--4-col"><h4>Basic Service</h4><h3>' + finalShopDetails.basicservice + '</h3></div>';
+		}else {
+			var basicService = '';
+		}
 
-	var shopPage = document.getElementById('shop-details-page-container');	
+		// Standard Service
+		if (finalShopDetails.standardservice){
+			var standardService = '<div class="workshop-price mdl-cell mdl-cell--4-col"><h4>Standard Service</h4><h3>' + finalShopDetails.standardservice + '</h3></div>';
+		}else {
+			var standardService = '';
+		}
 
-	if (shopPage && finalShopDetails) {
+		// Full Service
+		if (finalShopDetails.fullservice){
+			var fullService = '<div class="workshop-price mdl-cell mdl-cell--4-col"><h4>Standard Service</h4><h3>' + finalShopDetails.fullservice + '</h3></div>';
+		}else {
+			var fullService = '';
+		}
 
+		// Social
+		// Facebook
+		if (finalShopDetails.facebook){
+			var facebook = '<a href="http://' + finalShopDetails.facebook + '" target="_blank"><img src="../images/facebook.png" alt="facebook logo" /></a>';
+		}else {
+			var facebook = '';
+		}
 
-
-
-
-
+		// Twitter
+		if (finalShopDetails.twitter){
+			var twitter = '<a href="http://' + finalShopDetails.twitter + '" target="_blank"><img src="../images/twitter-grey.png" alt="facebook logo" /></a>';
+		}else {
+			var twitter = '';
+		}
+	
 
 		// Elements that will have info appended too
-		var openInfo = document.getElementById('opening-times');
-		var shopInfo = document.getElementById('shop-info');
+		var openInfo     = document.getElementById('opening-times');
+		var shopInfo     = document.getElementById('shop-info');		
+		var reviewInfo   = document.getElementById('reviews-info');
+		var workshopInfo = document.getElementById('workshop-info');
 		
-
+		
+		// Init empty variables
 		var shopDetailsOutput = '';
-		var opening 	  	  = '';	
+		var workshopOutput 	  = '';
+		var reviewOutput      = '';
+		var starOutput	= '';
+
+
+		// ===================================
+		//	Shop Info Section
+		// Displays the main informaiton on the shop
+		shopDetailsOutput += 	'<div class="info-container">' +
+									'<div>' +
+										'<div><h4>' + name +  '</h4></div>' +
+	    						 		'<div><p>'  + address + '</p></div>' +
+									'</div>' +
+									'<div>'  +
+										'<p>' + description + '</p>' +
+							 		'</div>'  +
+							  		'<div class="social-container">' +
+										'<div class="social facebook">' + facebook + '</div>' +
+			 							'<div class="social twitter">'  + twitter + '</div>' +	
+									'</div>' +
+								'</div>' +
+								'<div class="contact-container">' + 
+									'<h4>Contact</h4>' +
+									'<p>' + website + '</p>' +
+									'<p>' + email 	+ '</p>' +
+									'<p>' + phone 	+ '</p>' +
+									'<div id="stars"></div>' +		
+								'</div>';
 		
+	 	shopInfo.innerHTML = shopDetailsOutput;
 
+
+
+		// ===================================
+		//	Workshop Info Section
+		// Test to see if any servicing prices have been set in the sheets doc
+		if (basicService || standardService || fullService) {
+	 	
+	 		workshopOutput += 	  '<div><h4>Workshop</h4></div>'
+								+ '<div class="workshop-inner mdl-grid">'
+								+ 		basicService + standardService + fullService;
+								+ '</div>';
+		}else {
+
+			workshopOutput += 	  '<div><h4>Workshop</h4></div>'
+								+ '<div class="workshop-inner mdl-grid">'
+								+ 		'<p>There are currently no workshop details for ' + name + '.  If you would like to find out more please try contacting the shop directly from the details listed above.</p>'
+								+ '</div>';
+		}
+
+	 	workshopInfo.innerHTML = workshopOutput;
+
+
+
+
+		// ===================================
+		// Review Section
+		if (rating) {
+
+			var starInfo  	= document.getElementById('stars');
+
+			// Test to see if number is whole
+	 		var num = (rating - Math.floor(rating)) !== 0;
+
+	 		console.log(rating);
+
+	 		starOutput += '<h4>' + rating + '</h4>'
+	 					+ '<ul class="star-lists">';
+
+
+	 		// Test to see if the ratings number is a integer or float
+	 		if(num) { 
+
+	 			console.log("number is not whole")
+				for (var i = 1; i <= rating; i++) {	starOutput += '<li><i class="material-icons">star</i></li>'; };
+				starOutput += '<li><i class="material-icons">star_half</i></li>';
+	 		}else {
+
+	 			console.log("number is whole")
+		 		for (var i = 1; i <= rating; i++) {	starOutput += '<li><i class="material-icons">star</i></li>'; };
+	 		}
+
+	 		starOutput += '</ul>';
+
+	 		starInfo.innerHTML = starOutput;
+		}
+
+	
 		
+		// ===================================
+		// Rating Section
+		// Tests to see if there are ratings if there are then they will show
+		reviewOutput += '<div>';
+		reviewOutput +=  	'<div class="review-title"><h4>Reviews</h4><span class="see-more">See all reviews</span></div>';
+			for (var i = 0; i < finalShopDetails.reviews.length; i++) {
+				// console.log(finalShopDetails.reviews[i]);
+
+				reviewOutput += '<div class="review-container">';
+				reviewOutput +=		'<div>';
+				reviewOutput +=			'<p>' + finalShopDetails.reviews[i].text + '</p>';
+				reviewOutput +=	 		'<i>- ' + finalShopDetails.reviews[i].author_name + '</i>';
+				reviewOutput +=		'</div>';
+				reviewOutput +=		'<div class="author-rating-container">';
+				reviewOutput +=			'<div class="author-rating"><p>' + finalShopDetails.reviews[i].rating +'</p></div>';
+				reviewOutput +=			'<ul class="star-lists">';
+				for (var j = 1; j <= finalShopDetails.reviews[i].rating; j++) {
+				reviewOutput += 			'<li><i class="material-icons">star</i></li>';
+				};
+				reviewOutput += 		'</ul>';
+				reviewOutput +=		'</div>';
+				reviewOutput +=	'</div>';
+			};
+			reviewOutput +=	'</div>';
+
+		reviewInfo.innerHTML = reviewOutput;
 
 
+		// Show only 1st review
+		var reviewBox 	 = $('#reviews-info');
+		var reviewHeight = $('#reviews-info .review-container').first().height() + $('.review-title').outerHeight(true);
 
+		$(document).ready(function(){
 
-	};
+			console.log(reviewHeight);
+
+			$(reviewBox).css({
+				'height': reviewHeight,
+				'overflow': 'hidden' 
+			});
+
+			
+			$('.see-more').on('click tap', function(){
+
+				$(reviewBox).toggleClass('show');
+
+				if($(reviewBox).hasClass('show')){
+
+					$(reviewBox).css({
+						'height': '100%'						
+					});
+				}else {
+					$(reviewBox).css({
+						'height': reviewHeight,
+						'overflow': 'hidden' 
+					});
+				}
+			});	
+		});
+	}
 }
-
-
