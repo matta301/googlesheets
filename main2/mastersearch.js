@@ -206,6 +206,9 @@ function shopDetails() {
   				
 	  			var fullDetails = place;
 
+				console.log(fullDetails);
+
+
   				// Passes array to googleSheetsData() function where it will be compared to find a matching row in google sheets
 	  			googleSheetsData(fullDetails);
 	  		}
@@ -277,8 +280,8 @@ function compareResults(GSdata, fullDetails) {
 				// Google Maps API address long name
 				var components = GMaddressComponents[j].long_name.toLowerCase();
 
-				console.log(googleMapsResults)
-				console.log(GSPostCode)
+				//console.log(googleMapsResults)
+				//console.log(GSPostCode)
 
 
 				// If a matching shop name and postcode are found results are displayed
@@ -302,8 +305,14 @@ function compareResults(GSdata, fullDetails) {
 					// Results from google sheets are cobined to the Google maps data.
 					var finalShopDetails = Object.assign(googleMapsResults, additionalData);
 
-					console.log("================ Final Array =========================");
-					console.log(finalShopDetails);
+					//console.log("================ Final Array =========================");
+					//console.log(finalShopDetails);
+					appendBicycleShopDetails(finalShopDetails);
+				}else {
+
+
+
+					var finalShopDetails = googleMapsResults;
 					appendBicycleShopDetails(finalShopDetails);
 				}
 			}
@@ -320,7 +329,6 @@ function compareResults(GSdata, fullDetails) {
 */
 function appendBicycleShopDetails(finalShopDetails) {
 
-	//console.log(finalShopDetails);
 
 	var shopPage = document.getElementById('shop-details-page-container');
 
@@ -491,7 +499,7 @@ function appendBicycleShopDetails(finalShopDetails) {
 			// Test to see if number is whole
 	 		var num = (rating - Math.floor(rating)) !== 0;
 
-	 		console.log(rating);
+	 		//console.log(rating);
 
 	 		starOutput += '<h4>' + rating + '</h4>'
 	 					+ '<ul class="star-lists">';
@@ -500,18 +508,18 @@ function appendBicycleShopDetails(finalShopDetails) {
 	 		// Test to see if the ratings number is a integer or float
 	 		if(num) { 
 
-	 			console.log("number is not whole")
+	 			//console.log("number is not whole")
 				for (var i = 1; i <= rating; i++) {	starOutput += '<li><i class="material-icons">star</i></li>'; };
 				starOutput += '<li><i class="material-icons">star_half</i></li>';
 	 		}else {
 
-	 			console.log("number is whole")
+	 			//console.log("number is whole")
 		 		for (var i = 1; i <= rating; i++) {	starOutput += '<li><i class="material-icons">star</i></li>'; };
 	 		}
 
 	 		starOutput += '</ul>';
 
-	 		starInfo.innerHTML = starOutput;
+	 		starInfo.innerHTML = starOutput;		
 		}
 
 	
@@ -545,35 +553,37 @@ function appendBicycleShopDetails(finalShopDetails) {
 
 
 		// Show only 1st review
-		var reviewBox 	 = $('#reviews-info');
+		var reviewBox 	 = document.getElementById('reviews-info');
 		var reviewHeight = $('#reviews-info .review-container').first().height() + $('.review-title').outerHeight(true);
 
-		$(document).ready(function(){
 
-			console.log(reviewHeight);
+		var totalHeight = 0;
 
-			$(reviewBox).css({
-				'height': reviewHeight,
-				'overflow': 'hidden' 
-			});
+		$(".review-container").each(function(){
+		    totalHeight = totalHeight + $(this).outerHeight(true);
+		});
 
+
+		reviewBox.style.height   = reviewHeight;
+		reviewBox.style.overflow = 'hidden';
+
+		// Calculates height
+		$('.see-more').on('click tap', function(){
+
+			$(reviewBox).toggleClass('show');
+
+			if($(reviewBox).hasClass('show')){
+				
+				$(reviewBox).css({ 
+					'height': totalHeight + $('.review-title').outerHeight(true) 
+				});
+
+			}else {
+				
+				reviewBox.style.height 	 = reviewHeight;
+				reviewBox.style.overflow = 'hidden';					
 			
-			$('.see-more').on('click tap', function(){
-
-				$(reviewBox).toggleClass('show');
-
-				if($(reviewBox).hasClass('show')){
-
-					$(reviewBox).css({
-						'height': '100%'						
-					});
-				}else {
-					$(reviewBox).css({
-						'height': reviewHeight,
-						'overflow': 'hidden' 
-					});
-				}
-			});	
+			}
 		});
 	}
 }

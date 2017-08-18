@@ -39,12 +39,15 @@
 	ul.star-lists li { display: inline-block; color: #FFD966; }
 
 
-	#shop-info { border: 1px solid green; position: relative; padding-top: 30px; }
+	#shop-info { /*border: 1px solid green; */position: relative; padding-top: 30px; }
 	#shop-info h4 { text-transform: capitalize; }
 
 
-	#service-info { padding-top: 30px;  border: 1px solid green; min-height: 200px; }
-	#reviews-info { border: 1px solid green; min-height: 200px; }
+	
+	#main-shop-body .mdl-grid #workshop-info.mdl-cell { margin-top: 30px; margin-bottom: 30px; }
+
+
+	#reviews-info { /*border: 1px solid green; */min-height: 200px; }
 		
 	#main-shop-body	#shop-info .social-container { clear: both; }
 	#main-shop-body	#shop-info .social img { width: 90%; }
